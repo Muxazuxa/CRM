@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from cafe.models import Table, Role, Department, User, MealCategory, ServicePersentage, Meal, Order, MealToOrder, Check
-
+from.models import User
 
 class TableSerializer(serializers.ModelSerializer):
 
@@ -28,7 +28,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = User
-        fields = ('id', 'name', 'surname', 'email', 'role', 'phone', 'dateoffadd')
+        fields = ('id', 'email', 'first_name', 'last_name',
+                  'date_joined', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
 
 
 class MealCategorySerializer(serializers.ModelSerializer):
@@ -68,7 +70,7 @@ class CheckSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Check
-        fields = ('order', 'service_fee', 'date',)
+        fields = ('order', 'persentage', 'date',)
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
@@ -79,11 +81,7 @@ class CheckSerializer(serializers.ModelSerializer):
         total_sum = 0
         for mc in mealCounts:
             total_sum += (mc.count * mc.meal.price)
-
-        # total_sum = sum(instance.Meal.price + instance.ServicePercentage.percentage)
         result['total_sum'] = total_sum
         return result
-
-
 
 

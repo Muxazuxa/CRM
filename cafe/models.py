@@ -1,4 +1,10 @@
+from __future__ import unicode_literals
 from django.db import models
+from django.utils import timezone
+from django.contrib.auth.models import (
+    AbstractBaseUser, PermissionsMixin
+)
+from .managers import UserManager
 
 
 class Table(models.Model):
@@ -34,16 +40,24 @@ class Department(models.Model):
         return self.name
 
 
-class User(models.Model):
-    name = models.CharField(max_length=50)
-    surname = models.CharField(max_length=50)
-    email = models.EmailField()
-    role = models.ForeignKey('Role', on_delete=models.CASCADE)
-    dateoffadd = models.DateTimeField(auto_now_add=True)
-    phone = models.CharField(max_length=20)
+class User(AbstractBaseUser, PermissionsMixin):
 
-    class Meta:
-        verbose_name = 'User'
+    email = models.EmailField(max_length=40, unique=True)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(default=timezone.now)
+    role = models.ForeignKey('Role', on_delete=models.CASCADE)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+
+    def save(self, *args, **kwargs):
+        super(User, self).save(*args, **kwargs)
+        return self
 
 
 class MealCategory(models.Model):
@@ -66,8 +80,8 @@ class MealCategory(models.Model):
         return self.name
 
 
-class ServicePersentage(models.Model):
-    persentage = models.IntegerField(default=0)
+class ServicePersentage (models.Model):
+    persentage = models.IntegerField()
 
     class Meta:
         verbose_name = 'persentage'
@@ -123,7 +137,7 @@ class Check(models.Model):
     waiter = models.ForeignKey('User', on_delete=models.SET_NULL, null=True)
     order = models.ForeignKey('Order', on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
-    persentage = models.ForeignKey('cafe.ServicePercentage', on_delete=models.SET_NULL, null=True)
+    persentage = models.ForeignKey(ServicePersentage, on_delete=models.SET_NULL, null=True)
     total_sum = models.FloatField(null=True, editable=False)
 
     class Meta:
@@ -131,10 +145,7 @@ class Check(models.Model):
         verbose_name_plural = 'checks'
 
     def __str__(self):
-        return self.total_sum
-
-    class Meta:
-        abstract = True
+        return self.order
 
 
 
